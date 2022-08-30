@@ -30,7 +30,8 @@ app.post("/email", (req, res) => {
 
 app.get("/", (req, res) => {
   console.log(req.headers);
-  res.status(200).send("Headers");
+  res.send("hello, world");
+ // res.status(200).send("Headers");
 });
 
 /**
