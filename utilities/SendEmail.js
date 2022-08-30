@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 import path from "path";
-import hbs from "handlebars";
+import hbs from "../node_modules/handlebars/lib";
 
 // point to the template folder
 const handlebarOptions = {
