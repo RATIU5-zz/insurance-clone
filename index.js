@@ -1,43 +1,62 @@
 /**
  * Required External Modules
  */
-import express, { request } from "express";
-import bodyParser from "body-parser";
-import { sendEmailToCostumer } from "./utilities/SendEmail.js";
-/**
- * App Variables
- */
+ import express from "express";
+ import bodyParser from "body-parser";
+ import { check, validationResult } from "express-validator";
+ import {
+   sendEmailToAdmin,
+   sendEmailToCustomer,
+ } from "./utilities/SendEmail.js";
 
-const app = express();
-const port = process.env.PORT || "8000";
+ /**
+  * App Variables
+  */
 
-/**
- *  App Configuration
- */
+ const app = express();
+ const port = process.env.PORT || "8000";
 
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-app.use(bodyParser.raw());
+ /**
+  *  App Configuration
+  */
+ app.use(bodyParser.urlencoded({ extended: true }));
+ app.use(bodyParser.json());
+ app.use(bodyParser.raw());
 
-/**
- * Routes Definitions
- */
+ /**
+  * Routes Definitions
+  */
 
-app.post("/email", (req, res) => {
-  sendEmailToCostumer(req.body);
-  res.send();
-});
+ app.post(
+   "/email",
+   [
+	 check("name", "This must be 4+ characters long")
+	   .exists({ checkFalsy: true })
+	   .isLength({ min: 4 }),
+	 check("email", "Email is not valid").isEmail().normalizeEmail(),
+	 check("provider", "This must be 4+ characters long")
+	   .exists({ checkFalsy: true })
+	   .isLength({ min: 4 }),
+	 check("message", "This must be 4+ characters long")
+	   .exists({ checkFalsy: true })
+	   .isLength({ min: 4 }),
+   ],
+   async (req, res) => {
+	 const errors = validationResult(req);
+	 if (!errors.isEmpty()) {
+	   return res.status(422).jsonp(errors.array());
+	 } else {
+	   await sendEmailToCustomer(req.body);
+	   await sendEmailToAdmin(req.body);
+	   res.redirect("http://127.0.0.1:5500/frontend/index.html");
+	 }
+   }
+ );
 
-app.get("/", (req, res) => {
-  console.log(req.headers);
-  res.send("hello, world");
- // res.status(200).send("Headers");
-});
+ /**
+  * Server Activation
+  */
 
-/**
- * Server Activation
- */
-
-app.listen(port, () => {
-  console.log(`Listening to requests on http://localhost:${port}`);
-});
+ app.listen(port, () => {
+   console.log(`Listening to requests on http://localhost:${port}`);
+ });
